@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:whatsapp/Home.dart';
 import 'package:whatsapp/cadastro.dart';
@@ -51,12 +53,8 @@ class _LoginState extends State<Login> {
       password: usuario.senha
     ).then((firebaseUser){
 
-      Navigator.pushReplacement(
-        context, 
-        MaterialPageRoute(
-          builder: (context)=> Home()
-        )
-      );
+      Navigator.pushReplacementNamed(context, "/home");
+      
     }).catchError((error){
 
       setState(() {
@@ -73,13 +71,7 @@ class _LoginState extends State<Login> {
     FirebaseUser usuarioLogado = await auth.currentUser();
 
     if(usuarioLogado != null){
-
-      Navigator.pushReplacement(
-        context, 
-        MaterialPageRoute(
-          builder: (context)=> Home()
-        )
-      );
+      Navigator.pushReplacementNamed(context, "/home");
     }
   }
 

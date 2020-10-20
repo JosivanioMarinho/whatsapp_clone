@@ -71,12 +71,7 @@ class _CadastroState extends State<Cadastro> {
       .setData( usuario.toMap() );
 
       //Ir para tela principal
-      Navigator.pushReplacement(
-        context, 
-        MaterialPageRoute(
-          builder: (context) => Home()
-        )
-      );
+      Navigator.pushNamedAndRemoveUntil(context, "/home", (_) => false);
 
     }).catchError((error){
 
