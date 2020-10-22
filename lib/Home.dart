@@ -33,6 +33,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     switch(itemEscolhido){
       case "Configurações":
+        Navigator.pushNamed(context, "/configuracoes");
         break;
       case "Sair":
         _deslogarUsuario();
