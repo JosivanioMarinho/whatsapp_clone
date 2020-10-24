@@ -3,6 +3,7 @@ class Usuario{
   String _nome;
   String _email;
   String _senha;
+  String _urlImagem;
 
   Usuario();
 
@@ -32,6 +33,12 @@ class Usuario{
 
   set senha(String senha){
     _senha = senha;
+  }
+
+  String get urlImagem => _urlImagem;
+
+  set urlImagem(String urlImagem){
+    _urlImagem = urlImagem;
   }
 
 }
