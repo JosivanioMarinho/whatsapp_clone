@@ -35,6 +35,12 @@ class _AbaConversasState extends State<AbaConversas> {
         Conversa conversa = _listaConversa[indice];
 
         return ListTile(
+          /*onTap: (){
+            Navigator.pushNamed(
+              context, 
+              "/mensagens"
+            );
+          },*/
           contentPadding: EdgeInsets.fromLTRB(16, 8 ,16, 8),
           leading: CircleAvatar(
             maxRadius: 30,

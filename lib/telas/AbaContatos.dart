@@ -10,10 +10,9 @@ class AbaContatos extends StatefulWidget {
 }
 
 class _AbaContatosState extends State<AbaContatos> {
-
   String _idUsuarioLogado;
   String _emailUsuarioLogado;
-  
+
   Future<List<Usuario>> _recuperarContatos() async {
     Firestore db = Firestore.instance;
 
@@ -22,10 +21,9 @@ class _AbaContatosState extends State<AbaContatos> {
 
     List<Usuario> listaUsuarios = List();
     for (DocumentSnapshot item in querySnapshot.documents) {
-
       var dados = item.data;
 
-      if(dados["email"] == _idUsuarioLogado) continue;
+      if (dados["email"] == _idUsuarioLogado) continue;
 
       Usuario usuario = Usuario();
       usuario.nome = dados["nome"];
@@ -39,7 +37,6 @@ class _AbaContatosState extends State<AbaContatos> {
   }
 
   _recuperarDadoUsuario() async {
-
     FirebaseAuth auth = FirebaseAuth.instance;
     FirebaseUser user = await auth.currentUser();
     setState(() {
@@ -51,7 +48,7 @@ class _AbaContatosState extends State<AbaContatos> {
   @override
   void initState() {
     super.initState();
-     _recuperarDadoUsuario();
+    _recuperarDadoUsuario();
   }
 
   @override
@@ -78,6 +75,13 @@ class _AbaContatosState extends State<AbaContatos> {
                   Usuario usuario = listaItens[indice];
 
                   return ListTile(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context, 
+                        "/mensagens",
+                        arguments: usuario
+                      );
+                    },
                     contentPadding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                     leading: CircleAvatar(
                       maxRadius: 30,
