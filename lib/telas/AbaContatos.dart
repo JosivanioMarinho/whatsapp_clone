@@ -26,6 +26,7 @@ class _AbaContatosState extends State<AbaContatos> {
       if (dados["email"] == _idUsuarioLogado) continue;
 
       Usuario usuario = Usuario();
+      usuario.idUsuario = item.documentID;
       usuario.nome = dados["nome"];
       usuario.email = dados["email"];
       usuario.urlImagem = dados["urlImagem"];
@@ -55,7 +56,7 @@ class _AbaContatosState extends State<AbaContatos> {
   Widget build(BuildContext context) {
     return FutureBuilder<List<Usuario>>(
       future: _recuperarContatos(),
-      builder: (context, snapshot) {
+      builder: (context, snapshot){
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.waiting:

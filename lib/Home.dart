@@ -11,27 +11,30 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
-
   TabController _tabController;
 
-  List<String> itensMenu = [
-    "Configurações",
-    "Sair"
-  ];
+  List<String> itensMenu = ["Configurações", "Sair"];
 
-  @override
-  void initState() { 
-    super.initState();
-    
-    _tabController = TabController(
-      length: 2, 
-      vsync: this
-    );
+  Future _verificarUsuarioLogado() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    //auth.signOut();
+
+    FirebaseUser usuarioLogado = await auth.currentUser();
+
+    if (usuarioLogado == null) {
+      Navigator.pushReplacementNamed(context, "/login");
+    }
   }
 
-  _escolhaMenuItem(String itemEscolhido){
+  @override
+  void initState() {
+    super.initState();
+    _verificarUsuarioLogado();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
-    switch(itemEscolhido){
+  _escolhaMenuItem(String itemEscolhido) {
+    switch (itemEscolhido) {
       case "Configurações":
         Navigator.pushNamed(context, "/configuracoes");
         break;
@@ -42,7 +45,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   _deslogarUsuario() async {
-
     FirebaseAuth auth = FirebaseAuth.instance;
     await auth.signOut();
 
@@ -55,10 +57,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         title: Text("WhatsApp"),
         bottom: TabBar(
           indicatorWeight: 4,
-          labelStyle: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold
-          ),
+          labelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           controller: _tabController,
           indicatorColor: Colors.white,
           tabs: <Widget>[
@@ -69,8 +68,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: _escolhaMenuItem,
-            itemBuilder: (context){
-              return itensMenu.map((String item){
+            itemBuilder: (context) {
+              return itensMenu.map((String item) {
                 return PopupMenuItem<String>(
                   value: item,
                   child: Text(item),
