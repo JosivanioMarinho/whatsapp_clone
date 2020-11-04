@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:whatsapp/model/Conversa.dart';
 import 'package:whatsapp/model/Mensagem.dart';
 import 'package:whatsapp/model/Usuario.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class Mensagens extends StatefulWidget {
   Usuario contato;
@@ -17,6 +21,8 @@ class _MensagensState extends State<Mensagens> {
   String _idUsuarioLogado;
   String _idUsuarioDestinatario;
   Firestore db = Firestore.instance;
+  File _imagem;
+  bool _subindoImagem = false;
 
   List<String> listaMensagens = [
     "Olá, bom dia",
@@ -36,8 +42,36 @@ class _MensagensState extends State<Mensagens> {
       mensagem.urlImagem = "";
       mensagem.tipo = "texto";
 
+      //Salvar mensagem para remetente
       _salvarMensagem(_idUsuarioLogado, _idUsuarioDestinatario, mensagem);
+
+      //Salvar mensagem para destinatário
+      _salvarMensagem( _idUsuarioDestinatario, _idUsuarioLogado, mensagem);
+
+      //Salva conversa
+      _salvarConversa(mensagem);
     }
+  }
+
+  _salvarConversa(Mensagem msg){
+
+    //Salvar conversa Remetente
+    Conversa cRemetente = Conversa();
+    cRemetente.idRemetente = _idUsuarioLogado;
+    cRemetente.idDestinatario = _idUsuarioDestinatario;
+    cRemetente.mensagem = msg.mensagem;
+    cRemetente.nome = widget.contato.nome;
+    cRemetente.caminhoFoto = widget.contato.urlImagem;
+    cRemetente.tipoMensagem = msg.tipo;
+
+    //Salvar conversa Destinatario
+    Conversa cDestinatario = Conversa();
+    cDestinatario.idRemetente = _idUsuarioDestinatario;
+    cDestinatario.idDestinatario = _idUsuarioLogado;
+    cDestinatario.mensagem = msg.mensagem;
+    cDestinatario.nome = widget.contato.nome;
+    cDestinatario.caminhoFoto = widget.contato.urlImagem;
+    cDestinatario.tipoMensagem = msg.tipo;
   }
 
   _salvarMensagem(
@@ -52,7 +86,60 @@ class _MensagensState extends State<Mensagens> {
     _controllerMensagem.clear();
   }
 
-  _enviarFoto() {}
+  _enviarFoto() async {
+
+    File imagemSelecionada;
+    imagemSelecionada = await ImagePicker.pickImage(source: ImageSource.gallery);
+    
+    _subindoImagem = true;
+    //Diretório e nome do arquivo
+    String nomeImagem = DateTime.now().millisecondsSinceEpoch.toString();
+    FirebaseStorage storage = FirebaseStorage.instance;
+    StorageReference pastaRaiz = storage.ref();
+    StorageReference arquivo = pastaRaiz
+    .child("mensagens")
+    .child(_idUsuarioLogado)
+    .child(nomeImagem + ".jpg");
+
+    //Upload da imagem
+    StorageUploadTask task = await arquivo.putFile(imagemSelecionada);
+
+    //Controlar progresso do Upload
+    task.events.listen((StorageTaskEvent storageTaskEvent) {
+
+      if(storageTaskEvent.type == StorageTaskEventType.progress){
+        setState(() {
+          _subindoImagem = true;
+        });
+      }else if(storageTaskEvent.type == StorageTaskEventType.success){
+        setState(() {
+          _subindoImagem = false;
+        });
+      }
+    });
+
+    //Recuperar url da imagem
+    task.onComplete.then((StorageTaskSnapshot snapshot) {
+      _recuperarUrlImagem(snapshot);
+    });
+  }
+
+  Future _recuperarUrlImagem(StorageTaskSnapshot snapshot) async {
+
+    String url = await snapshot.ref.getDownloadURL();
+
+    Mensagem mensagem = Mensagem();
+      mensagem.idUsuario = _idUsuarioLogado;
+      mensagem.mensagem = "";
+      mensagem.urlImagem = url;
+      mensagem.tipo = "imagem";
+
+      //Salvar mensagem para remetente
+      _salvarMensagem(_idUsuarioLogado, _idUsuarioDestinatario, mensagem);
+
+      //Salvar mensagem para destinatário
+      _salvarMensagem( _idUsuarioDestinatario, _idUsuarioLogado, mensagem);
+  }
 
   _recuperarDadosUsuario() async {
     FirebaseAuth auth = FirebaseAuth.instance;
@@ -91,9 +178,10 @@ class _MensagensState extends State<Mensagens> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  prefixIcon: IconButton(
-                    icon: Icon(Icons.camera_enhance),
-                    onPressed: _enviarFoto,
+                  prefixIcon: 
+                  _subindoImagem
+                  ? CircularProgressIndicator()
+                  : IconButton(icon: Icon(Icons.camera_enhance),onPressed: _enviarFoto,
                   ),
                 ),
               ),
@@ -163,12 +251,9 @@ class _MensagensState extends State<Mensagens> {
                               borderRadius:
                                   BorderRadius.all(Radius.circular(8)),
                             ),
-                            child: Text(
-                              item["mensagem"],
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
+                            child: item["tipo"] == "texto"
+                            ? Text(item["mensagem"],style: TextStyle(fontSize: 16,))
+                            : Image.network(item["urlImagem"])
                           ),
                         ),
                       );
@@ -178,39 +263,6 @@ class _MensagensState extends State<Mensagens> {
             break;
         }
       },
-    );
-
-    var listView = Expanded(
-      child: ListView.builder(
-          itemCount: listaMensagens.length,
-          itemBuilder: (context, indice) {
-            Alignment alinhamento = Alignment.centerRight;
-            Color cor = Color(0xffd2ffa5);
-            if (indice % 2 == 0) {
-              alinhamento = Alignment.centerLeft;
-              cor = Colors.white;
-            }
-
-            return Align(
-              alignment: alinhamento,
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: cor,
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                  child: Text(
-                    listaMensagens[indice],
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
     );
 
     return Scaffold(
