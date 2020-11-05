@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp/model/Conversa.dart';
@@ -187,7 +188,12 @@ class _MensagensState extends State<Mensagens> {
               ),
             ),
           ),
-          FloatingActionButton(
+          Platform.isIOS 
+            ? CupertinoButton(
+              child: Text("Enviar"),
+              onPressed: _enviarMensagem,
+            )
+            : FloatingActionButton(
               backgroundColor: Color(0xff075E54),
               child: Icon(Icons.send, color: Colors.white),
               mini: true,

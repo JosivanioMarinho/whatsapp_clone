@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:whatsapp/login.dart';
 import 'package:whatsapp/telas/AbaContatos.dart';
 import 'package:whatsapp/telas/AbaConversas.dart';
+import 'dart:io';
 
 class Home extends StatefulWidget {
   @override
@@ -54,12 +55,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: Platform.isIOS ? 0 : 4,
         title: Text("WhatsApp"),
         bottom: TabBar(
           indicatorWeight: 4,
           labelStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           controller: _tabController,
-          indicatorColor: Colors.white,
+          indicatorColor: Platform.isIOS ? Colors.grey[400] : Colors.white,
           tabs: <Widget>[
             Tab(text: "Conversas"),
             Tab(text: "Contatos"),
