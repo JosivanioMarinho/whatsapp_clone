@@ -2,6 +2,7 @@ class Mensagem {
   String _idUsuario;
   String _mensagem;
   String _urlImagem;
+  String _data;
 
   //define o tipo da mensagem, que pode ser "testo" ou "imagem"
   String _tipo;
@@ -15,7 +16,8 @@ class Mensagem {
       "idUsuario": this.idUsuario,
       "mensagem": this.mensagem,
       "urlImagem": this.urlImagem,
-      "tipo": this.tipo
+      "tipo": this.tipo,
+      "data": this.data
     };
 
     return map;
@@ -43,5 +45,11 @@ class Mensagem {
 
   set tipo(String tipo) {
     _tipo = tipo;
+  }
+
+  String get data => _data;
+
+  set data(String data) {
+    _data = data;
   }
 }

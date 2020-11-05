@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,15 +26,11 @@ class _MensagensState extends State<Mensagens> {
   Firestore db = Firestore.instance;
   File _imagem;
   bool _subindoImagem = false;
-
-  List<String> listaMensagens = [
-    "Olá, bom dia",
-    "Tudo bem?",
-    "Leu aquele livro que te recomendei? É muito bom.",
-    "A história é bem divertida",
-  ];
-
   TextEditingController _controllerMensagem = TextEditingController();
+
+  final _controller = StreamController<QuerySnapshot>.broadcast();
+
+  ScrollController _scrollController = ScrollController();
 
   _enviarMensagem() {
     String textoMensagem = _controllerMensagem.text;
@@ -41,6 +39,7 @@ class _MensagensState extends State<Mensagens> {
       mensagem.idUsuario = _idUsuarioLogado;
       mensagem.mensagem = textoMensagem;
       mensagem.urlImagem = "";
+      mensagem.data = Timestamp.now().toString();
       mensagem.tipo = "texto";
 
       //Salvar mensagem para remetente
@@ -133,6 +132,7 @@ class _MensagensState extends State<Mensagens> {
       mensagem.idUsuario = _idUsuarioLogado;
       mensagem.mensagem = "";
       mensagem.urlImagem = url;
+      mensagem.data = Timestamp.now().toString();
       mensagem.tipo = "imagem";
 
       //Salvar mensagem para remetente
@@ -148,6 +148,26 @@ class _MensagensState extends State<Mensagens> {
     _idUsuarioLogado = usuarioLogado.uid;
 
     _idUsuarioDestinatario = widget.contato.idUsuario;
+
+    _adicionarListenerMensagem();
+  }
+
+  Stream<QuerySnapshot> _adicionarListenerMensagem() {
+
+    final stream = db
+          .collection("mensgens")
+          .document(_idUsuarioLogado)
+          .collection(_idUsuarioDestinatario)
+          .orderBy("data", descending: false)
+          .snapshots();
+        
+    stream.listen(( dados ) { 
+      _controller.add(dados);
+
+      Timer(Duration(seconds: 1), (){
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+    });
   }
 
   @override
@@ -203,11 +223,7 @@ class _MensagensState extends State<Mensagens> {
     );
 
     var stream = StreamBuilder(
-      stream: db
-          .collection("mensgens")
-          .document(_idUsuarioLogado)
-          .collection(_idUsuarioDestinatario)
-          .snapshots(),
+      stream: _controller.stream,
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -231,6 +247,7 @@ class _MensagensState extends State<Mensagens> {
 
               return Expanded(
                 child: ListView.builder(
+                    controller: _scrollController,
                     itemCount: querySnapshot.documents.length,
                     itemBuilder: (context, indice) {
 
